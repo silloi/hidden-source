@@ -160,8 +160,10 @@ else:
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         if message["timestamp"]:
-            then = message["timestamp"].strftime('%H:%M:%S') if is_filtered_by_date and date_selected else message["timestamp"].strftime('%Y-%m-%d %H:%M:%S')
-            st.markdown(f"`{then}`")
+            # If date is selected, show only time. Otherwise, show date and time.
+            then = message["timestamp"].time() if is_filtered_by_date and date_selected else message["timestamp"]
+            then = then.replace(microsecond=0)
+            st.write(then)
         st.markdown(message["content"])
         # # checkbox in chat_message is not working
         # st.checkbox("📌", value=message["pinned"], key=f"pinned-{message['id']}", on_change=toggle_pinned(message["id"], message["pinned"]))
