@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from datetime import date, datetime, timedelta
 
-from lib.db import initialize_and_create_connection
+from helper.db import initialize_and_create_connection
 
 #
 # Initialization
