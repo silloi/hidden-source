@@ -3,6 +3,7 @@ import pandas as pd
 from datetime import date, datetime, timedelta
 
 from helper.db import initialize_and_create_connection
+from helper.message import update_archived, update_pinned
 
 #
 # Initialization
@@ -91,8 +92,8 @@ st.sidebar.divider()
 # Pinned & Archived
 #
 
-# is_filtered_by_pinned = st.sidebar.checkbox("📌 Pinned")
-# is_filtered_by_archived = st.sidebar.checkbox("🗑️ Archived")
+is_filtered_by_pinned = st.sidebar.checkbox("📌 Show only pinned")
+is_filtered_by_archived = st.sidebar.checkbox("🗑️ Show also archived")
 
 
 #
@@ -124,10 +125,10 @@ messages['project'] = messages["project_id"].apply(lambda id: (conn.query("SELEC
 if not messages.empty:
     if is_filtered_by_project:
         messages = messages[messages.project.apply(lambda project: project["id"] == project_id_selected if project else False)]
-    # if is_filtered_by_archived:
-    #     messages = messages[messages.archived == True]
-    # if is_filtered_by_pinned:
-    #     messages = messages[messages.pinned == True]
+    if is_filtered_by_pinned:
+        messages = messages[messages.pinned == True]
+    if not is_filtered_by_archived:
+        messages = messages[messages.archived == False]
 
     st.session_state.messages = messages.to_dict(orient="records")
 else:
@@ -166,10 +167,14 @@ for message in st.session_state.messages:
             then = then.replace(microsecond=0)
             st.markdown(f"`{then}`\t`#{id}`")
         st.markdown(message["content"])
-        # # checkbox in chat_message is not working
-        # st.checkbox("📌", value=message["pinned"], key=f"pinned-{message['id']}", on_change=toggle_pinned(message["id"], message["pinned"]))
-        # st.checkbox("🗑️", value=message["archived"], key=f"archived-{message['id']}", on_change=toggle_archived(message["id"], message["archived"]))
 
+        col_pinned, col_archived = st.columns(2)
+        checkbox_pinned = col_pinned.checkbox("📌 ", value=message["pinned"], key=f"pinned-{message['id']}")
+        if message["pinned"] != checkbox_pinned:
+            update_pinned(conn, message["id"], checkbox_pinned)
+        checkbox_archived = col_archived.checkbox("🗑️", value=message["archived"], key=f"archived-{message['id']}")
+        if message["archived"] != checkbox_archived:
+            update_archived(conn, message["id"], checkbox_archived)
 
 # Chat input
 post = ""
