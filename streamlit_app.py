@@ -59,7 +59,7 @@ else:
     st.session_state.projects = []
 
 # filter messages by project
-project_id_selected = st.sidebar.radio("Projects", [project["id"] for project in st.session_state.projects], format_func=lambda id: projects[projects.id == id].iloc[0]["name"] if not projects[projects.id == id].empty else "")
+project_id_selected = st.sidebar.radio("Projects", [project["id"] for project in st.session_state.projects], format_func=lambda id: projects.get(projects.id == id, {}).get("name", "").values[0])
 
 # Area - other tag
 
@@ -101,7 +101,7 @@ is_filtered_by_archived = st.sidebar.checkbox("🗑️ Show also archived")
 #
 
 if is_filtered_by_project and project_id_selected:
-    st.title(projects.get(project_id_selected))
+    st.title(projects.get(projects.id == project_id_selected, {}).get("name", "").values[0])
 elif is_filtered_by_date and date_selected:
     st.title(date_selected.strftime("%Y/%m/%d"))
 # elif len(st.session_state.selected_tags) > 0:
