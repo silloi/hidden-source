@@ -78,7 +78,7 @@ def generate_summary(conn, client, st, project_id=None, project_name=None, date=
 
         if project_id and project_name:
             history_log = convert_messages_to_log(conn, client, st, message_history, has_ymd=True)
-            prompt = f"""The following text is a formatted log in the project named {project_name}. Considering that, summarize it briefly. Do not use English unless the original text is written in it.
+            prompt = f"""The following text is a formatted log in the project named {project_name}. It may contain just memos or even fragmented words. Considering that, summarize it briefly. Do not use English unless the original text is written in it.
 ===
 Log:
 {history_log}
@@ -87,7 +87,7 @@ Summary:
 """
         elif date:
             history_log = convert_messages_to_log(conn, client, st, message_history, has_ymd=False)
-            prompt = f"""The following text is a formatted log in the journal on {date}. Considering that, summarize it briefly. Do not use English unless the original text is written in it.
+            prompt = f"""The following text is a formatted log in the journal on {date}. It may contain just memos or even fragmented words. Considering that, summarize it briefly. Do not use English unless the original text is written in it.
 ===
 Log:
 {history_log}
