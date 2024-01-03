@@ -1,9 +1,10 @@
 import streamlit as st
 import pandas as pd
+from openai import OpenAI
 from datetime import date, datetime, timedelta
 
 from helper.db import initialize_and_create_connection
-from helper.message import update_archived, update_pinned
+from helper.message import update_archived, update_pinned, generate_summary
 
 #
 # Initialization
@@ -13,6 +14,10 @@ st.set_page_config(page_title="HiddenSource", initial_sidebar_state="auto", page
 
 conn = initialize_and_create_connection(st)
 
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+
+if "openai_model" not in st.session_state:
+    st.session_state["openai_model"] = "gpt-3.5-turbo"
 
 #
 # Side bar
@@ -112,7 +117,8 @@ else:
 
 # Summary
 
-summaries = conn.query("SELECT * FROM summaries")
+# Sort descending by timestamp
+summaries = conn.query("SELECT * FROM summaries ORDER BY timestamp DESC")
 
 # Populate message by message_id
 summaries["message"] = summaries["message_id"].apply(lambda id: (conn.query("SELECT * FROM messages WHERE id = :id", params={"id": id}).iloc[0].to_dict() if not conn.query("SELECT * FROM messages WHERE id = :id", params={"id": id}).empty else None) if id else None)
@@ -138,7 +144,12 @@ if len(st.session_state.summaries) > 0:
     elif is_filtered_by_date and date_selected:
         st.info(st.session_state.summaries[0]["message"]["content"])
 
-    st.button("Generate Summary again", on_click=lambda: st.sidebar.success("(Unimplemented) Summary generated!"))
+    button_generate_summary = st.button("Generate Summary again")
+    if button_generate_summary:
+        if is_filtered_by_project and project_id_selected:
+            generate_summary(conn, client, st, project_id=project_id_selected, project_name=projects.get(projects.id == project_id_selected, {}).get("name", "").values[0])
+        elif is_filtered_by_date and date_selected:
+            generate_summary(conn, client, st, date=date_selected)
 
     st.header("Logs")
 else:
