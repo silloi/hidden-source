@@ -128,7 +128,7 @@ if not summaries.empty:
     if is_filtered_by_project and project_id_selected:
         summaries = summaries[summaries.project_id == project_id_selected]
     elif is_filtered_by_date and date_selected:
-        summaries = summaries[summaries.date == date_selected]
+        summaries = summaries[summaries.date == date_selected.strftime("%Y-%m-%d")]
     else:
         summaries = summaries[0:0]
 
@@ -162,7 +162,13 @@ else:
                 - 🗑️ (Unimplemented) Archive a message to hide it from the chat
         """)
     elif len(st.session_state.messages) > 0:
-        st.button("Generate Summary", on_click=lambda: st.sidebar.success("(Unimplemented) Summary generated!"))
+        button_generate_summary = st.button("Generate Summary")
+        if button_generate_summary:
+            if is_filtered_by_project and project_id_selected:
+                generate_summary(conn, client, st, project_id=project_id_selected, project_name=projects.get(projects.id == project_id_selected, {}).get("name", "").values[0])
+            elif is_filtered_by_date and date_selected:
+                generate_summary(conn, client, st, date=date_selected)
+
     else:
         st.info("No activities found.")
 

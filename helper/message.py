@@ -31,14 +31,13 @@ def insert_summary(conn, message_id, project_id=None, date=None):
     else:
         with conn.session as s:
             s.execute(
-                "INSERT INTO summaries (message_id, timestamp) VALUES (:message_id, :timestamp);",
-                params=dict(message_id=message_id, timestamp=now)
+                "INSERT INTO summaries (message_id, date, timestamp) VALUES (:message_id, :date, :timestamp);",
+                params=dict(message_id=message_id, date=date, timestamp=now)
             )
             s.commit()
 
 def update_pinned(conn, id, value):
     with conn.session as s:
-        print(id, value)
         s.execute(
             "UPDATE messages SET pinned = :value WHERE id = :id;",
             params=dict(value=value, id=id)
@@ -63,10 +62,11 @@ def generate_summary(conn, client, st, project_id=None, project_name=None, date=
 
         if project_id and project_name:
             messages_history = [{"role": m["role"], "content": m["content"]} for m in message_history]
-            messages_history.append({"role": "system", "content": f"Based on the user's previous message logs, summarize the contents of the project named {project_name}."})
+            messages_history.append({"role": "user", "content": f"The above message history is monolog for the project named {project_name}. Considering that, summarize them briefly."})
         elif date:
+            print("date", date)
             messages_history = [{"role": m["role"], "content": m["timestamp"].strftime("%Y-%m-%d %H:%M:%S") + "\n" + m["content"]} for m in message_history]
-            messages_history.append({"role": "user", "content": f"Considering the timestamp placed in each first line of contents, summarize the day {date}."})
+            messages_history.append({"role": "user", "content": f"The above message history is monolog for the journal on {date}. Considering that, summarize them briefly."})
 
         for response in client.chat.completions.create(
             model=st.session_state["openai_model"],
@@ -86,6 +86,6 @@ def generate_summary(conn, client, st, project_id=None, project_name=None, date=
     if project_id:
         insert_message(conn, full_response, role="assistant", project_id=project_id)
         insert_summary(conn, latest_message_id + 1, project_id=project_id)
-    else:
+    elif date:
         insert_message(conn, full_response, role="assistant")
-        insert_summary(conn, latest_message_id + 1)
+        insert_summary(conn, latest_message_id + 1, date=date)
