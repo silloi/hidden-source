@@ -187,8 +187,10 @@ if post:
     with st.chat_message("user"):
         st.markdown(f"`{now.strftime('%H:%M:%S')}`")
         st.markdown(post)
-        # st.checkbox("Pin", value=False)
-        # st.checkbox("Archive", value=False)
+
+        col_pinned, col_archived = st.columns(2)
+        checkbox_pinned = col_pinned.checkbox("📌 ", value=False, key="pinned-new-message-id", disabled=True)
+        checkbox_archived = col_archived.checkbox("🗑️", value=False, key="archived-new-message-id", disabled=True)
 
     # project_id = conn.query("SELECT * FROM projects WHERE id = :id", params={"id": project_id_selected}).iloc[0]["id"] if is_filtered_by_project and project_id_selected else ""
     st.session_state.messages.append({"content": post, "timestamp": now, "role": "user", "project_id": project_id_selected, "archived": False, "pinned": False})
