@@ -110,6 +110,52 @@ else:
     st.title("🧪 HiddenSource")
 
 
+# Summary
+
+summaries = conn.query("SELECT * FROM summaries")
+
+# Populate message by message_id
+summaries["message"] = summaries["message_id"].apply(lambda id: (conn.query("SELECT * FROM messages WHERE id = :id", params={"id": id}).iloc[0].to_dict() if not conn.query("SELECT * FROM messages WHERE id = :id", params={"id": id}).empty else None) if id else None)
+
+# filter summaries
+if not summaries.empty:
+    if is_filtered_by_project and project_id_selected:
+        summaries = summaries[summaries.project_id == project_id_selected]
+    elif is_filtered_by_date and date_selected:
+        summaries = summaries[summaries.date == date_selected]
+    else:
+        summaries = summaries[0:0]
+
+    st.session_state.summaries = summaries.to_dict(orient="records")
+else:
+    st.session_state.summaries = []
+
+if len(st.session_state.summaries) > 0:
+    st.header("Summary")
+
+    if is_filtered_by_project and project_id_selected:
+        st.info(st.session_state.summaries[0]["message"]["content"])
+    elif is_filtered_by_date and date_selected:
+        st.info(st.session_state.summaries[0]["message"]["content"])
+
+    st.button("Generate Summary again", on_click=lambda: st.sidebar.success("(Unimplemented) Summary generated!"))
+
+    st.header("Logs")
+else:
+    if not is_filtered_by_date and not is_filtered_by_project:
+        st.info("Welcome to HiddenSource! This is a demo of a chat app built with Streamlit. Feel free to send a message to get started.")
+        st.info("""
+                - 📅 Filter by date
+                - 📝 Filter by project
+                - 📌 (Unimplemented) Pin a message to keep it at the top of the chat
+                - 🗑️ (Unimplemented) Archive a message to hide it from the chat
+        """)
+    elif len(st.session_state.messages) > 0:
+        st.button("Generate Summary", on_click=lambda: st.sidebar.success("(Unimplemented) Summary generated!"))
+    else:
+        st.info("No activities found.")
+
+
 # Query and display the data you inserted
 if is_filtered_by_date and date_selected:
     messages = conn.query("SELECT * FROM messages WHERE timestamp >= :today AND timestamp < :next", params={"today": date_selected, "next": date_selected + timedelta(days=1)})
@@ -135,26 +181,6 @@ else:
     st.session_state.messages = []
 
 # dates = messages.timestamp.dt.date.unique()
-
-
-#
-# Main content
-# 
-
-# Summary
-
-if not is_filtered_by_date and not is_filtered_by_project:
-    st.info("Welcome to HiddenSource! This is a demo of a chat app built with Streamlit. Feel free to send a message to get started.")
-    st.info("""
-            - 📅 Filter by date
-            - 📝 Filter by project
-            - 📌 (Unimplemented) Pin a message to keep it at the top of the chat
-            - 🗑️ (Unimplemented) Archive a message to hide it from the chat
-    """)
-elif len(st.session_state.messages) > 0:
-    st.button("Generate Summary", on_click=lambda: st.sidebar.success("(Unimplemented) Summary generated!"))
-else:
-    st.info("No activities found.")
 
 
 # Chat messages

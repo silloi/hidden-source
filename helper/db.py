@@ -4,6 +4,7 @@ def initialize_and_create_connection(st):
 
     create_message_table(conn)
     create_project_table(conn)
+    create_summary_table(conn)
 
     # Flush the cache to ensure that the data is up to date
     st.cache_data.clear()
@@ -29,6 +30,17 @@ def create_project_table(conn):
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT UNIQUE NOT NULL,
             emoji TEXT,
+            timestamp DATETIME
+        )""")
+        s.commit()
+
+def create_summary_table(conn):
+    with conn.session as s:
+        s.execute("""CREATE TABLE IF NOT EXISTS summaries (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            message_id INTEGER,
+            date DATE,
+            project_id INTEGER,
             timestamp DATETIME
         )""")
         s.commit()
