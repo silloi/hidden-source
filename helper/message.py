@@ -64,7 +64,6 @@ def generate_summary(conn, client, st, project_id=None, project_name=None, date=
             messages_history = [{"role": m["role"], "content": m["content"]} for m in message_history]
             messages_history.append({"role": "user", "content": f"The above message history is monolog for the project named {project_name}. Considering that, summarize them briefly."})
         elif date:
-            print("date", date)
             messages_history = [{"role": m["role"], "content": m["timestamp"].strftime("%Y-%m-%d %H:%M:%S") + "\n" + m["content"]} for m in message_history]
             messages_history.append({"role": "user", "content": f"The above message history is monolog for the journal on {date}. Considering that, summarize them briefly."})
 

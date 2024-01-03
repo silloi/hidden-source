@@ -14,10 +14,6 @@ st.set_page_config(page_title="HiddenSource", initial_sidebar_state="auto", page
 
 conn = initialize_and_create_connection(st)
 
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
-
-if "openai_model" not in st.session_state:
-    st.session_state["openai_model"] = "gpt-3.5-turbo"
 
 #
 # Side bar
@@ -100,6 +96,20 @@ st.sidebar.divider()
 is_filtered_by_pinned = st.sidebar.checkbox("📌 Show only pinned")
 is_filtered_by_archived = st.sidebar.checkbox("🗑️ Show also archived")
 
+st.sidebar.divider()
+
+#
+# Settings
+#
+
+if "openai_model" not in st.session_state:
+    st.session_state["openai_model"] = "gpt-3.5-turbo"
+
+with st.sidebar.expander("Settings", expanded=False):
+    openai_api_key = st.text_input("OpenAI API key", value=st.secrets["OPENAI_API_KEY"])
+    st.session_state["openai_model"] = st.text_input("OpenAI model", value=st.session_state["openai_model"])
+
+client = OpenAI(api_key=openai_api_key)
 
 #
 # Main content
@@ -144,7 +154,7 @@ if len(st.session_state.summaries) > 0:
     elif is_filtered_by_date and date_selected:
         st.info(st.session_state.summaries[0]["message"]["content"])
 
-    button_generate_summary = st.button("Generate Summary again")
+    button_generate_summary = st.button("Generate Summary again", disabled=not openai_api_key)
     if button_generate_summary:
         if is_filtered_by_project and project_id_selected:
             generate_summary(conn, client, st, project_id=project_id_selected, project_name=projects.get(projects.id == project_id_selected, {}).get("name", "").values[0])
@@ -162,7 +172,7 @@ else:
                 - 🗑️ (Unimplemented) Archive a message to hide it from the chat
         """)
     elif len(st.session_state.messages) > 0:
-        button_generate_summary = st.button("Generate Summary")
+        button_generate_summary = st.button("Generate Summary", disabled=not openai_api_key)
         if button_generate_summary:
             if is_filtered_by_project and project_id_selected:
                 generate_summary(conn, client, st, project_id=project_id_selected, project_name=projects.get(projects.id == project_id_selected, {}).get("name", "").values[0])
