@@ -52,24 +52,53 @@ def update_archived(conn, id, value):
         )
         s.commit()
 
+def convert_messages_to_log(conn, client, st, messages, has_ymd=False):
+    events = []
+
+    if len(messages) == 0:
+        st.warning("No messages to export.")
+        return
+
+    for message in messages:
+        if message["role"] == "user":
+            if has_ymd:
+                events += "\n".join([message["timestamp"].strftime("%Y-%m-%d %H:%M:%S"), message["content"]])
+            else:
+                events += "\n".join([message["timestamp"].strftime("%H:%M:%S"), message["content"]])
+
+    return "\n\n".join(events)
+
 def generate_summary(conn, client, st, project_id=None, project_name=None, date=None):
     with st.chat_message("assistant"):
         message_placeholder = st.empty()
         full_response = ""
 
         message_history_all = st.session_state.messages.copy()
-        message_history = filter(lambda m: not m["archived"], message_history_all)
+        message_history = list(filter(lambda m: not m["archived"], message_history_all))
 
         if project_id and project_name:
-            messages_history = [{"role": m["role"], "content": m["content"]} for m in message_history]
-            messages_history.append({"role": "user", "content": f"The above message history is monolog for the project named {project_name}. Considering that, summarize them briefly."})
+            history_log = convert_messages_to_log(conn, client, st, message_history, has_ymd=True)
+            prompt = f"""The following text is a formatted log in the project named {project_name}. Considering that, summarize it briefly. Do not use English unless the original text is written in it.
+===
+Log:
+{history_log}
+===
+Summary:
+"""
         elif date:
-            messages_history = [{"role": m["role"], "content": m["timestamp"].strftime("%Y-%m-%d %H:%M:%S") + "\n" + m["content"]} for m in message_history]
-            messages_history.append({"role": "user", "content": f"The above message history is monolog for the journal on {date}. Considering that, summarize them briefly."})
+            history_log = convert_messages_to_log(conn, client, st, message_history, has_ymd=False)
+            prompt = f"""The following text is a formatted log in the journal on {date}. Considering that, summarize it briefly. Do not use English unless the original text is written in it.
+===
+Log:
+{history_log}
+===
+Summary:
+"""
+        prompt_message = ({"role": "user", "content": prompt })
 
         for response in client.chat.completions.create(
             model=st.session_state["openai_model"],
-            messages=[{"role": m["role"], "content": m["content"]} for m in st.session_state.messages],
+            messages=[prompt_message],
             stream=True,
         ):
             full_response += (response.choices[0].delta.content or "")
