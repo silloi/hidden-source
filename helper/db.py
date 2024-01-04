@@ -29,7 +29,6 @@ def create_project_table(conn):
         s.execute("""CREATE TABLE IF NOT EXISTS projects (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT UNIQUE NOT NULL,
-            emoji TEXT,
             timestamp DATETIME
         )""")
         s.commit()
