@@ -154,13 +154,6 @@ if len(st.session_state.summaries) > 0:
     elif is_filtered_by_date and date_selected:
         st.info(st.session_state.summaries[0]["message"]["content"])
 
-    button_generate_summary = st.button("Generate Summary again", disabled=not openai_api_key)
-    if button_generate_summary:
-        if is_filtered_by_project and project_id_selected:
-            generate_summary(conn, client, st, project_id=project_id_selected, project_name=projects.get(projects.id == project_id_selected, {}).get("name", "").values[0])
-        elif is_filtered_by_date and date_selected:
-            generate_summary(conn, client, st, date=date_selected)
-
     st.header("Logs")
 else:
     if not is_filtered_by_date and not is_filtered_by_project:
@@ -171,15 +164,7 @@ else:
                 - 📌 (Unimplemented) Pin a message to keep it at the top of the chat
                 - 🗑️ (Unimplemented) Archive a message to hide it from the chat
         """)
-    elif len(st.session_state.messages) > 0:
-        button_generate_summary = st.button("Generate Summary", disabled=not openai_api_key)
-        if button_generate_summary:
-            if is_filtered_by_project and project_id_selected:
-                generate_summary(conn, client, st, project_id=project_id_selected, project_name=projects.get(projects.id == project_id_selected, {}).get("name", "").values[0])
-            elif is_filtered_by_date and date_selected:
-                generate_summary(conn, client, st, date=date_selected)
-
-    else:
+    elif len(st.session_state.messages) == 0:
         st.info("No activities found.")
 
 
@@ -263,3 +248,13 @@ if post:
                 params=dict(message=post, role="user", timestamp=now)
             )
             s.commit()
+
+if not is_filtered_by_date and not is_filtered_by_project:
+    pass
+elif len(st.session_state.messages) > 0:
+    button_generate_summary = st.button("Generate Summary", disabled=not openai_api_key)
+    if button_generate_summary:
+        if is_filtered_by_project and project_id_selected:
+            generate_summary(conn, client, st, project_id=project_id_selected, project_name=projects.get(projects.id == project_id_selected, {}).get("name", "").values[0])
+        elif is_filtered_by_date and date_selected:
+            generate_summary(conn, client, st, date=date_selected)
