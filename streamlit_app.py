@@ -143,27 +143,6 @@ if not notes.empty:
 else:
     st.session_state.notes = []
 
-if len(st.session_state.notes) > 0:
-    st.header("Summary")
-
-    if is_filtered_by_project and project_id_selected:
-        st.info(st.session_state.notes[0]["content"])
-    elif is_filtered_by_date and date_selected:
-        st.info(st.session_state.notes[0]["content"])
-
-    st.header("Logs")
-else:
-    if not is_filtered_by_date and not is_filtered_by_project:
-        st.info("Welcome to HiddenSource! This is a demo of a chat app built with Streamlit. Feel free to send a message to get started.")
-        st.info("""
-                - 📅 Filter by date
-                - 📝 Filter by project
-                - 📌 (Unimplemented) Pin a message to keep it at the top of the chat
-                - 🗑️ (Unimplemented) Archive a message to hide it from the chat
-        """)
-    elif len(st.session_state.messages) == 0:
-        st.info("No activities found.")
-
 
 # Query and display the data you inserted
 if is_filtered_by_date and date_selected:
@@ -191,6 +170,27 @@ else:
 
 # dates = messages.timestamp.dt.date.unique()
 
+st.session_state.is_project_open = True
+
+if len(st.session_state.notes) > 0:
+    if is_filtered_by_project and project_id_selected:
+        st.info(st.session_state.notes[0]["content"])
+    elif is_filtered_by_date and date_selected:
+        st.info(st.session_state.notes[0]["content"])
+
+    st.session_state.is_project_open = st.checkbox("Reopen project to add a memo", False)
+elif len(st.session_state.messages) == 0:
+    if not is_filtered_by_date and not is_filtered_by_project:
+        st.info("Welcome to HiddenSource! This is a demo of a chat app built with Streamlit. Feel free to send a message to get started.")
+        st.info("""
+                - 📅 Filter by date
+                - 📝 Filter by project
+                - 📌 (Unimplemented) Pin a message to keep it at the top of the chat
+                - 🗑️ (Unimplemented) Archive a message to hide it from the chat
+        """)
+    else:
+        st.info("No activities found.")
+
 
 # Chat messages
 for message in st.session_state.messages:
@@ -213,7 +213,7 @@ for message in st.session_state.messages:
 
 # Chat input
 post = ""
-if not is_filtered_by_date or date_selected == date.today():
+if (not is_filtered_by_date or date_selected == date.today()) and st.session_state.is_project_open:
     post = st.chat_input("What happened?")
 
 if post:
