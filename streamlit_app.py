@@ -128,31 +128,28 @@ else:
 # Summary
 
 # Sort descending by timestamp
-summaries = conn.query("SELECT * FROM summaries ORDER BY timestamp DESC")
+notes = conn.query("SELECT * FROM notes ORDER BY timestamp DESC")
 
-# Populate message by message_id
-summaries["message"] = summaries["message_id"].apply(lambda id: (conn.query("SELECT * FROM messages WHERE id = :id", params={"id": id}).iloc[0].to_dict() if not conn.query("SELECT * FROM messages WHERE id = :id", params={"id": id}).empty else None) if id else None)
-
-# filter summaries
-if not summaries.empty:
+# filter notes
+if not notes.empty:
     if is_filtered_by_project and project_id_selected:
-        summaries = summaries[summaries.project_id == project_id_selected]
+        notes = notes[notes.project_id == project_id_selected]
     elif is_filtered_by_date and date_selected:
-        summaries = summaries[summaries.date == date_selected.strftime("%Y-%m-%d")]
+        notes = notes[notes.date == date_selected.strftime("%Y-%m-%d")]
     else:
-        summaries = summaries[0:0]
+        notes = notes[0:0]
 
-    st.session_state.summaries = summaries.to_dict(orient="records")
+    st.session_state.notes = notes.to_dict(orient="records")
 else:
-    st.session_state.summaries = []
+    st.session_state.notes = []
 
-if len(st.session_state.summaries) > 0:
+if len(st.session_state.notes) > 0:
     st.header("Summary")
 
     if is_filtered_by_project and project_id_selected:
-        st.info(st.session_state.summaries[0]["message"]["content"])
+        st.info(st.session_state.notes[0]["content"])
     elif is_filtered_by_date and date_selected:
-        st.info(st.session_state.summaries[0]["message"]["content"])
+        st.info(st.session_state.notes[0]["content"])
 
     st.header("Logs")
 else:

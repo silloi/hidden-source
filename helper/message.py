@@ -18,21 +18,21 @@ def insert_message(conn, message, role="user", project_id=None):
             )
             s.commit()
 
-def insert_summary(conn, message_id, project_id=None, date=None):
+def insert_note(conn, message_id, project_id=None, date=None):
     now = datetime.now()
 
     if project_id:
         with conn.session as s:
             s.execute(
-                "INSERT INTO summaries (message_id, project_id, timestamp) VALUES (:message_id, :project_id, :timestamp);",
-                params=dict(message_id=message_id, project_id=int(project_id), timestamp=now)
+                "INSERT INTO notes (content, project_id, timestamp) VALUES (:message_id, :project_id, :timestamp);",
+                params=dict(content=content, project_id=int(project_id), timestamp=now)
             )
             s.commit()
     else:
         with conn.session as s:
             s.execute(
-                "INSERT INTO summaries (message_id, date, timestamp) VALUES (:message_id, :date, :timestamp);",
-                params=dict(message_id=message_id, date=date, timestamp=now)
+                "INSERT INTO notes (message_id, date, timestamp) VALUES (:message_id, :date, :timestamp);",
+                params=dict(content=content, date=date, timestamp=now)
             )
             s.commit()
 
@@ -108,12 +108,9 @@ Summary:
 
     st.session_state.messages.append({"role": "assistant", "content": full_response})
 
-    # get the latest message id
-    latest_message_id = conn.query("SELECT * FROM messages ORDER BY id DESC LIMIT 1").iloc[0]["id"]
-    latest_message_id = int(latest_message_id)
     if project_id:
         insert_message(conn, full_response, role="assistant", project_id=project_id)
-        insert_summary(conn, latest_message_id + 1, project_id=project_id)
+        insert_note(conn, full_response, project_id=project_id)
     elif date:
         insert_message(conn, full_response, role="assistant")
-        insert_summary(conn, latest_message_id + 1, date=date)
+        insert_note(conn, full_response, date=date)

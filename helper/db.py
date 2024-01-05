@@ -37,7 +37,7 @@ def create_summary_table(conn):
     with conn.session as s:
         s.execute("""CREATE TABLE IF NOT EXISTS summaries (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            message_id INTEGER,
+            content TEXT,
             date DATE,
             project_id INTEGER,
             timestamp DATETIME
