@@ -18,20 +18,20 @@ def insert_message(conn, message, role="user", project_id=None):
             )
             s.commit()
 
-def insert_note(conn, message_id, project_id=None, date=None):
+def insert_note(conn, content, project_id=None, date=None):
     now = datetime.now()
 
     if project_id:
         with conn.session as s:
             s.execute(
-                "INSERT INTO notes (content, project_id, timestamp) VALUES (:message_id, :project_id, :timestamp);",
+                "INSERT INTO notes (content, project_id, timestamp) VALUES (:content, :project_id, :timestamp);",
                 params=dict(content=content, project_id=int(project_id), timestamp=now)
             )
             s.commit()
     else:
         with conn.session as s:
             s.execute(
-                "INSERT INTO notes (message_id, date, timestamp) VALUES (:message_id, :date, :timestamp);",
+                "INSERT INTO notes (content, date, timestamp) VALUES (:content, :date, :timestamp);",
                 params=dict(content=content, date=date, timestamp=now)
             )
             s.commit()
@@ -106,11 +106,7 @@ Summary:
 
         message_placeholder.markdown(full_response)
 
-    st.session_state.messages.append({"role": "assistant", "content": full_response})
-
     if project_id:
-        insert_message(conn, full_response, role="assistant", project_id=project_id)
         insert_note(conn, full_response, project_id=project_id)
     elif date:
-        insert_message(conn, full_response, role="assistant")
         insert_note(conn, full_response, date=date)
