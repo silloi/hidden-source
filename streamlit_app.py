@@ -173,12 +173,8 @@ else:
 st.session_state.is_project_open = True
 
 if len(st.session_state.notes) > 0:
-    if is_filtered_by_project and project_id_selected:
+    if (is_filtered_by_project and project_id_selected) or (is_filtered_by_date and date_selected):
         st.info(st.session_state.notes[0]["content"])
-    elif is_filtered_by_date and date_selected:
-        st.info(st.session_state.notes[0]["content"])
-
-    st.session_state.is_project_open = st.checkbox("Reopen project to add a memo", False)
 elif len(st.session_state.messages) == 0:
     if not is_filtered_by_date and not is_filtered_by_project:
         st.info("Welcome to HiddenSource! This is a demo of a chat app built with Streamlit. Feel free to send a message to get started.")
@@ -190,6 +186,21 @@ elif len(st.session_state.messages) == 0:
         """)
     else:
         st.info("No activities found.")
+
+if len(st.session_state.messages) > 0:
+    if is_filtered_by_project and project_id_selected and len(st.session_state.notes) > 0:
+        st.session_state.is_project_open = st.checkbox("Reopen to add a memo", False)
+        button_regenerate_summary = st.button("Generate Summary", disabled=not openai_api_key)
+    elif is_filtered_by_date and date_selected and date_selected is not date.today():
+        button_generate_summary = st.button("Generate Summary", disabled=not openai_api_key)
+    else:
+        button_generate_summary = False
+
+    if button_generate_summary:
+        if is_filtered_by_project and project_id_selected:
+            generate_summary(conn, client, st, project_id=project_id_selected, project_name=projects.get(projects.id == project_id_selected, {}).get("name", "").values[0])
+        elif is_filtered_by_date and date_selected:
+            generate_summary(conn, client, st, date=date_selected)
 
 
 # Chat messages
@@ -246,11 +257,9 @@ if post:
             )
             s.commit()
 
-if not is_filtered_by_date and not is_filtered_by_project:
-    pass
-elif len(st.session_state.messages) > 0:
-    button_generate_summary = st.button("Generate Summary", disabled=not openai_api_key)
-    if button_generate_summary:
+if is_filtered_by_project and project_id_selected and len(st.session_state.messages) > 0 and st.session_state.is_project_open:
+    button_close_and_generate_summary = st.button("Close and generate Summary", disabled=not openai_api_key)
+    if button_close_and_generate_summary:
         if is_filtered_by_project and project_id_selected:
             generate_summary(conn, client, st, project_id=project_id_selected, project_name=projects.get(projects.id == project_id_selected, {}).get("name", "").values[0])
         elif is_filtered_by_date and date_selected:
