@@ -190,7 +190,7 @@ elif len(st.session_state.messages) == 0:
 if len(st.session_state.messages) > 0:
     if is_filtered_by_project and project_id_selected and len(st.session_state.notes) > 0:
         st.session_state.is_project_open = st.checkbox("Reopen to add a memo", False)
-        button_regenerate_summary = st.button("Generate Summary", disabled=not openai_api_key)
+        button_generate_summary = st.button("Generate Summary", disabled=not openai_api_key)
     elif is_filtered_by_date and date_selected and date_selected is not date.today():
         button_generate_summary = st.button("Generate Summary", disabled=not openai_api_key)
     else:
