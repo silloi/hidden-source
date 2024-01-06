@@ -177,12 +177,14 @@ if len(st.session_state.notes) > 0:
         st.info(st.session_state.notes[0]["content"])
 elif len(st.session_state.messages) == 0:
     if not is_filtered_by_date and not is_filtered_by_project:
-        st.info("Welcome to HiddenSource! This is a demo of a chat app built with Streamlit. Feel free to send a message to get started.")
+        st.info("_HiddenSource の秘伝のタレは、創業以来継ぎ足すことで、深い味わいを生み出しています。_")
         st.info("""
-                - 📅 Filter by date
-                - 📝 Filter by project
-                - 📌 (Unimplemented) Pin a message to keep it at the top of the chat
-                - 🗑️ (Unimplemented) Archive a message to hide it from the chat
+                Welcome to HiddenSource! This is a chat-like memo app that helps you keep track of your daily activities. You can:
+                - 📅 Filter by date to journal your day
+                - 📝 Filter by project to separate your concerns
+                - 📌 Pin a message to find it quickly later
+                - 🗑️ Archive a message to hide it anywhere
+                - 🤖 Generate a summary of your activities using OpenAI's GPT-3.5/4
         """)
     else:
         st.info("No activities found.")
