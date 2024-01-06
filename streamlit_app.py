@@ -226,7 +226,7 @@ for message in st.session_state.messages:
 # Chat input
 post = ""
 if (not is_filtered_by_date or date_selected == date.today()) and st.session_state.is_project_open:
-    post = st.chat_input("What happened?")
+    post = st.chat_input("What is up?")
 
 if post:
     now = datetime.now()
