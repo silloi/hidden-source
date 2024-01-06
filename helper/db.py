@@ -35,7 +35,7 @@ def create_project_table(conn):
 
 def create_note_table(conn):
     with conn.session as s:
-        s.execute("""CREATE TABLE IF NOT EXISTS summaries (
+        s.execute("""CREATE TABLE IF NOT EXISTS notes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             content TEXT,
             date DATE,
